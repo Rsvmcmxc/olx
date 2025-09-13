@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Checkout — Katy Perry</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f6f7f8;color:#222}
+    header{background:#fff;padding:12px 18px;border-bottom:1px solid #eee}
+    .wrap{max-width:900px;margin:22px auto;padding:14px}
+    .cart{background:#fff;padding:14px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.04)}
+    .line{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed #eee}
+    .line:last-child{border-bottom:0}
+    .total{font-weight:800;font-size:20px;padding-top:10px}
+    .actions{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+    button{padding:10px 14px;border-radius:8px;border:0;cursor:pointer}
+    .pay{background:#2a9d8f;color:white}
+    .back{background:#ddd}
+    form input {width:100%;padding:10px;margin-top:8px;border-radius:6px;border:1px solid #ddd}
+  </style>
+</head>
+<body>
+  <header><a href="index.html">◀ Voltar</a></header>
+  <main class="wrap">
+    <section class="cart" id="cartBox">
+      <h3>Resumo do Pedido</h3>
+      <div id="items"></div>
+      <div class="total" id="total">Total: R$ 0,00</div>
+      <div class="actions">
+        <button class="back" onclick="location.href='ingressos.html'">Voltar</button>
+        <button class="pay" id="finalize">Finalizar Compra</button>
+      </div>
+      <h4>Dados do comprador</h4>
+      <form id="buyerForm" onsubmit="return false;">
+        <input type="text" id="name" placeholder="Nome completo" required>
+        <input type="text" id="cpf" placeholder="CPF" required>
+        <input type="email" id="email" placeholder="E-mail" required>
+      </form>
+    </section>
+  </main>
+  <script>
+    const endpoint='https://go.invictuspay.app.br/3vx56vmqt0';
+    function formatBRL(c){return 'R$ '+(c/100).toFixed(2).replace('.',',');}
+    const rawCart=JSON.parse(localStorage.getItem('checkout_cart')||'[]');
+    const itemsBox=document.getElementById('items'); let total=0;
+    if(rawCart.length===0){itemsBox.innerHTML='<p>Carrinho vazio.</p>';} else {rawCart.forEach(it=>{const d=document.createElement('div');d.className='line';d.innerHTML=`<div>${it.name} x${it.qty}</div><div>${formatBRL(it.price*it.qty)}</div>`;itemsBox.appendChild(d);total+=it.price*it.qty;});}
+    document.getElementById('total').textContent='Total: '+formatBRL(total);
+    document.getElementById('finalize').onclick=async()=>{
+      if(rawCart.length===0){alert('Carrinho vazio.');return;}
+      const name=document.getElementById('name').value.trim();
+      const cpf=document.getElementById('cpf').value.trim();
+      const email=document.getElementById('email').value.trim();
+      if(!name||!cpf||!email){alert('Preencha todos os dados.');return;}
+      const payload={buyer:{name,cpf,email},items:rawCart,total:total};
+      try{const resp=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        if(resp.ok){alert('Compra enviada com sucesso!');localStorage.removeItem('checkout_cart');location.href='index.html';}
+        else{alert('Erro ao processar compra.');}
+      }catch(e){alert('Erro de conexão.');}
+    };
+  </script>
+</body>
+</html>

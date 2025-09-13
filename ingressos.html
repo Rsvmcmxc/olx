@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ingressos — Katy Perry</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;margin:0;color:#222;background:#fafafa}
+    header{background:#fff;padding:14px 18px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between}
+    header h2{margin:0;font-size:18px}
+    .container{max-width:1100px;margin:18px auto;padding:12px}
+    .filters{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+    .ticket-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+    .ticket{background:#fff;padding:12px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.04);position:relative}
+    .ticket h4{margin:6px 0}
+    .price{font-weight:700;font-size:18px;margin-top:6px}
+    .badge{position:absolute;right:12px;top:12px;padding:6px 10px;border-radius:20px;font-weight:700}
+    .badge.un{background:#bdbdbd;color:#fff}
+    .badge.av{background:#2a9d8f;color:#fff}
+    .controls{display:flex;gap:8px;margin-top:10px}
+    button{padding:8px 10px;border-radius:6px;border:0;cursor:pointer}
+    .btn-buy{background:#d62828;color:#fff}
+    .btn-toggle{background:#666;color:#fff}
+    .small{font-size:13px;color:#666;margin-top:8px}
+  </style>
+</head>
+<body>
+  <header>
+    <h2>Ingressos — Selecionar (apenas "Ingressos Geral")</h2>
+    <nav>
+      <a href="index.html" style="text-decoration:none;color:#333">Voltar</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <div class="filters">
+      <label><strong>Filtrar por:</strong></label>
+      <select id="filterSelect">
+        <option value="geral" selected>Ingressos Geral</option>
+      </select>
+      <div style="margin-left:auto">
+        <button id="toggleAll" class="btn-toggle">Desativar Todos (para teste)</button>
+      </div>
+    </div>
+
+    <div class="ticket-list" id="ticketsContainer"></div>
+
+    <p class="small">Todos os ingressos estão <strong>DISPONÍVEIS</strong> por padrão.</p>
+  </main>
+
+  <script>
+    const rawTickets = [
+      { id: 'g_01', name: 'INGRESSO GERAL - PISTA A', originalPrice: 20000, type: 'geral' },
+      { id: 'g_02', name: 'INGRESSO GERAL - PISTA B', originalPrice: 18000, type: 'geral' },
+      { id: 'g_03', name: 'INGRESSO GERAL - CADEIRA INFERIOR', originalPrice: 30000, type: 'geral' },
+      { id: 'g_04', name: 'INGRESSO GERAL - PISTA PREMIUM', originalPrice: 40000, type: 'geral' }
+    ];
+    let availability = {}; rawTickets.forEach(t => availability[t.id] = true);
+    const cont = document.getElementById('ticketsContainer');
+
+    function metade(v){return Math.round(v/2);} function formatBRL(c){return 'R$ '+(c/100).toFixed(2).replace('.',',');}
+    function render(){
+      cont.innerHTML='';
+      rawTickets.forEach(t=>{
+        const half=metade(t.originalPrice);
+        const card=document.createElement('div'); card.className='ticket';
+        const badge=document.createElement('div'); badge.className='badge '+(availability[t.id]?'av':'un');
+        badge.textContent=availability[t.id]?'DISPONÍVEL':'INDISPONÍVEL'; card.appendChild(badge);
+        card.innerHTML+=`<h4>${t.name}</h4><div class="price">${formatBRL(half)}</div>`;
+        const controls=document.createElement('div'); controls.className='controls';
+        const buy=document.createElement('button'); buy.className='btn-buy'; buy.textContent='Selecionar e ir ao checkout';
+        buy.onclick=()=>{ if(!availability[t.id]){alert('Indisponível');return;} const cart=[{id:t.id,name:t.name,price:half,qty:1}]; localStorage.setItem('checkout_cart',JSON.stringify(cart)); location.href='checkout.html'; };
+        const toggle=document.createElement('button'); toggle.className='btn-toggle'; toggle.textContent=availability[t.id]?'Marcar Indisponível':'Marcar Disponível';
+        toggle.onclick=()=>{availability[t.id]=!availability[t.id]; render();};
+        controls.appendChild(buy); controls.appendChild(toggle); card.appendChild(controls); cont.appendChild(card);
+      });
+    }
+    document.getElementById('toggleAll').onclick=()=>{const anyUn=Object.values(availability).some(v=>!v); rawTickets.forEach(t=>availability[t.id]=anyUn); render();};
+    render();
+  </script>
+</body>
+</html>
